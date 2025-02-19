@@ -10,6 +10,7 @@ pygame.init()
 
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
+DARK_GREEN = (0, 100, 0)
 GRAY = (137, 137, 137)
 YELLOW = (255, 255, 0)
 
@@ -26,7 +27,7 @@ font = pygame.font.Font(None, 36)
 def main():
     running = True
     sorting = False
-    #make test array
+    # make test array
     random_arr = []
     while len(random_arr) < 7:
             num = random.randint(1, 18)
@@ -44,13 +45,15 @@ def main():
 
     # custom events
     NEXTSTEP = pygame.USEREVENT + 1
-    pygame.time.set_timer(NEXTSTEP, 750)
-    current_bar_index = 0
+    pygame.time.set_timer(NEXTSTEP, 350)
 
-    #set up visual array
+    # set up visual array
     bars = []
     bar_x = 100
     bar_y = 400
+    # indices for loops
+    i = 0
+    j = i
 
     for num in random_arr:
         bars.append(Bar(bar_x, bar_y, num, GRAY))
@@ -72,8 +75,38 @@ def main():
                         # pygame.event.post(pygame.event.Event(STARTSORT))
                         sorting = True
             elif event.type == NEXTSTEP and sorting:
-                bars[current_bar_index].color = YELLOW
-                current_bar_index = (current_bar_index + 1) % len(bars)
+                n = len(bars)
+                    # min_index = i
+                bars[i].color = GREEN
+                # if bars[j].value < bars[min_index].value:
+                #     bars[min_index].color = GRAY
+                #     min_index = j
+                #     bars[j].color = GREEN
+                if j == i and i != n - 1:
+                    bars[n - 1].color = GRAY
+                elif j == i + 1:
+                    bars[j].color = YELLOW
+                elif j > i + 1:
+                    bars[j - 1].color = GRAY
+                    bars[j].color = YELLOW
+                
+
+                j += 1
+                if j >= n:
+                    i += 1
+                    j = i
+                    # min_index = i
+                if i > n - 1:
+                    pygame.time.set_timer(NEXTSTEP, 0)
+
+
+
+                # bars[i].color = YELLOW
+                # if i == 0:
+                #     bars[len(bars) - 1].color = GRAY
+                # elif i > 0:
+                #     bars[i - 1].color = GRAY
+                # i = (i + 1) % len(bars)
     
         if not sorting:
             button.draw(screen, font)
