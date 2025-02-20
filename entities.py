@@ -8,6 +8,8 @@ class Bar:
         self.width = 25
         self.value = arr_value
         self.color = color
+        self.is_current_min = False
+        self.is_sorted = False
         self.rect = pygame.Rect(pos_x, pos_y - self.height, self.width, self.height)
 
 

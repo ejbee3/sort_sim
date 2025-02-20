@@ -27,6 +27,7 @@ font = pygame.font.Font(None, 36)
 def main():
     running = True
     sorting = False
+    swap_running = False
     # make test array
     random_arr = []
     while len(random_arr) < 7:
@@ -44,8 +45,8 @@ def main():
     )
 
     # custom events
-    NEXTSTEP = pygame.USEREVENT + 1
-    pygame.time.set_timer(NEXTSTEP, 350)
+    NEXTITER = pygame.USEREVENT + 1
+    pygame.time.set_timer(NEXTITER, 800)
 
     # set up visual array
     bars = []
@@ -54,6 +55,7 @@ def main():
     # indices for loops
     i = 0
     j = i
+    min_index = i
 
     for num in random_arr:
         bars.append(Bar(bar_x, bar_y, num, GRAY))
@@ -74,30 +76,36 @@ def main():
                     if button.is_clicked(pygame.mouse.get_pos()):
                         # pygame.event.post(pygame.event.Event(STARTSORT))
                         sorting = True
-            elif event.type == NEXTSTEP and sorting:
+            elif event.type == NEXTITER and sorting and not swap_running:
                 n = len(bars)
-                    # min_index = i
-                bars[i].color = GREEN
-                # if bars[j].value < bars[min_index].value:
-                #     bars[min_index].color = GRAY
-                #     min_index = j
-                #     bars[j].color = GREEN
-                if j == i and i != n - 1:
-                    bars[n - 1].color = GRAY
-                elif j == i + 1:
-                    bars[j].color = YELLOW
-                elif j > i + 1:
-                    bars[j - 1].color = GRAY
-                    bars[j].color = YELLOW
-                
+                prev = bars[j - 1]
+                bars[min_index].color = GREEN
+                bars[min_index].is_current_min = True
+                if bars[j].value < bars[min_index].value:
+                    # changing color and changing bool of old min
+                    bars[min_index].color = GRAY
+                    bars[min_index].is_current_min = False
+                    # updating color and bool to new min
+                    bars[j].color = GREEN
+                    bars[j].is_current_min = True
+                    # check if there is a yellow bar before the new min
+                    if prev.value >= bars[min_index].value:
+                        prev.color = GRAY
+                    # assigning last so its not confusing
+                    min_index = j
+                else:
+                    if j >= i + 1:
+                        if not prev.is_current_min:
+                            prev.color = GRAY
+                        bars[j].color = YELLOW
 
+                # increment
                 j += 1
-                if j >= n:
-                    i += 1
-                    j = i
+                if j == n:
+                    # i += 1
+                    # j = i
                     # min_index = i
-                if i > n - 1:
-                    pygame.time.set_timer(NEXTSTEP, 0)
+                    pygame.time.set_timer(NEXTITER, 0)
 
 
 
