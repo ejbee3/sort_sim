@@ -27,6 +27,7 @@ font = pygame.font.Font(None, 36)
 def main():
     running = True
     sorting = False
+    swap_running = False
     # make test array
     random_arr = []
     while len(random_arr) < 7:
@@ -44,8 +45,8 @@ def main():
     )
 
     # custom events
-    NEXTSTEP = pygame.USEREVENT + 1
-    pygame.time.set_timer(NEXTSTEP, 350)
+    NEXTITER = pygame.USEREVENT + 1
+    pygame.time.set_timer(NEXTITER, 800)
 
     # set up visual array
     bars = []
@@ -75,22 +76,36 @@ def main():
                     if button.is_clicked(pygame.mouse.get_pos()):
                         # pygame.event.post(pygame.event.Event(STARTSORT))
                         sorting = True
-            elif event.type == NEXTSTEP and sorting:
+            elif event.type == NEXTITER and sorting and not swap_running:
                 n = len(bars)
+                prev = bars[j - 1]
                 bars[min_index].color = GREEN
+                bars[min_index].is_current_min = True
                 if bars[j].value < bars[min_index].value:
-                    bars[min_index].color = DARK_GREEN
-                    min_index = j
+                    # changing color and changing bool of old min
+                    bars[min_index].color = GRAY
+                    bars[min_index].is_current_min = False
+                    # updating color and bool to new min
                     bars[j].color = GREEN
-                
+                    bars[j].is_current_min = True
+                    # check if there is a yellow bar before the new min
+                    if prev.value >= bars[min_index].value:
+                        prev.color = GRAY
+                    # assigning last so its not confusing
+                    min_index = j
+                else:
+                    if j >= i + 1:
+                        if not prev.is_current_min:
+                            prev.color = GRAY
+                        bars[j].color = YELLOW
+
+                # increment
                 j += 1
-                if j >= n:
-                    
-                    i += 1
-                    j = i
-                    min_index = i
-                if i > n - 1:
-                    pygame.time.set_timer(NEXTSTEP, 0)
+                if j == n:
+                    # i += 1
+                    # j = i
+                    # min_index = i
+                    pygame.time.set_timer(NEXTITER, 0)
 
 
 
