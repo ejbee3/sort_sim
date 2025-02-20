@@ -54,6 +54,7 @@ def main():
     # indices for loops
     i = 0
     j = i
+    min_index = i
 
     for num in random_arr:
         bars.append(Bar(bar_x, bar_y, num, GRAY))
@@ -76,26 +77,18 @@ def main():
                         sorting = True
             elif event.type == NEXTSTEP and sorting:
                 n = len(bars)
-                    # min_index = i
-                bars[i].color = GREEN
-                # if bars[j].value < bars[min_index].value:
-                #     bars[min_index].color = GRAY
-                #     min_index = j
-                #     bars[j].color = GREEN
-                if j == i and i != n - 1:
-                    bars[n - 1].color = GRAY
-                elif j == i + 1:
-                    bars[j].color = YELLOW
-                elif j > i + 1:
-                    bars[j - 1].color = GRAY
-                    bars[j].color = YELLOW
+                bars[min_index].color = GREEN
+                if bars[j].value < bars[min_index].value:
+                    bars[min_index].color = DARK_GREEN
+                    min_index = j
+                    bars[j].color = GREEN
                 
-
                 j += 1
                 if j >= n:
+                    
                     i += 1
                     j = i
-                    # min_index = i
+                    min_index = i
                 if i > n - 1:
                     pygame.time.set_timer(NEXTSTEP, 0)
 
