@@ -2,13 +2,11 @@ import pygame
 
 class Bar:
     def __init__(self, pos_x, pos_y, arr_value, color):
-        self.pos_x = pos_x
-        self.pos_y = pos_y
         self.height = 15 * arr_value
         self.width = 25
         self.value = arr_value
         self.color = color
-        self.is_current_min = False
+        self.is_smallest = False
         self.is_sorted = False
         self.rect = pygame.Rect(pos_x, pos_y - self.height, self.width, self.height)
 
