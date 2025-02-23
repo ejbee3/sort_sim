@@ -35,8 +35,8 @@ def main():
     running = True
     sorting = False
     swapping = False
-    # TODO: if first element is already sorted, no swap needed!
-    # no_swap_needed = False
+    swap_needed = True
+    sort_completed = False
     
     button = Button(
         left=(SCREEN_WIDTH - 200) // 2,  # Center horizontally
@@ -48,11 +48,22 @@ def main():
         text_color=BLACK
     )
 
+    exit_button = Button(
+        left=(SCREEN_WIDTH - 200) // 2,  # Center horizontally
+        top=(SCREEN_HEIGHT - 100) // 2,  # Center vertically
+        width=200,
+        height=100,
+        text="You did it!",
+        color=GREEN,
+        text_color=BLACK
+    )
+
     bar_x = 100
 
     # custom events
     NEXTITER = pygame.USEREVENT + 1
-    pygame.time.set_timer(NEXTITER, 600)
+    SORTING_SPEED = 350
+    pygame.time.set_timer(NEXTITER, SORTING_SPEED)
 
     # make test array
     arr = []
@@ -85,13 +96,16 @@ def main():
                     running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if button.is_clicked(pygame.mouse.get_pos()):
+                    with_mouse = pygame.mouse.get_pos()
+                    if button.is_clicked(with_mouse):
                         sorting = True
+                    elif exit_button.is_clicked(with_mouse):
+                        running = False
             elif event.type == NEXTITER and sorting and not swapping:
                 bars_list = bars.sprites()
                 n = len(bars_list)
                 if j == n:
-                    pygame.time.wait(600)
+                    pygame.time.wait(SORTING_SPEED)
                 else:
                     prev_bar = bars_list[j - 1]
                     prev_val = arr[j - 1]
@@ -122,8 +136,12 @@ def main():
                         if bar.is_smallest:
                             current_min['x'] = bar.rect.x
                             current_min['index'] = index
-                    target_swap['x'] = bars_list[0].rect.x
-                    target_swap['index'] = 0
+                    if current_min['index'] == 0:
+                        swap_needed = False
+                    else:
+                        target_swap['x'] = bars_list[i].rect.x
+                        target_swap['index'] = i
+                    
                     pygame.time.set_timer(NEXTITER, 0)
                     swapping = True
 
@@ -132,27 +150,28 @@ def main():
         screen.fill(BLACK) 
         if not sorting:
             button.draw(screen, font)
+        elif sort_completed:
+            exit_button.draw(screen, font)
         else:
-            if swapping:
+            if swapping and swap_needed:
                 current_min_bar = bars_list[current_min['index']]
-                first_bar = bars_list[target_swap['index']]
+                target_bar = bars_list[target_swap['index']]
                 if current_min['index'] != len(bars_list) - 1:
                     bars_list[len(bars_list) - 1].recolor(GRAY)
-                first_bar.recolor(YELLOW)
+                target_bar.recolor(YELLOW)
                 if (
                         current_min_bar.rect.x <= target_swap['x'] and
-                        first_bar.rect.x >= current_min['x']
+                        target_bar.rect.x >= current_min['x']
                     ):
                     # actually swap the bars in the array
                     arr[current_min['index']], arr[target_swap['index']] = arr[target_swap['index']], arr[current_min['index']]
+                    bar_x = 100
                     bars.empty()
-                    bar_x = target_swap['x']
                     for index in range(len(arr)):
                         total_height = BAR_HEIGHT * arr[index]
                         bar = Bar_Sprite(bar_x, BAR_Y - total_height, BAR_WIDTH, total_height)
-                        if index == target_swap['index']:
+                        if index <= target_swap['index']:
                             bar.recolor(DARK_GREEN)
-                            bar.is_sorted = True
                         bars.add(bar)
                         bar_x += 50
                     # increment loops
@@ -161,14 +180,20 @@ def main():
                     j = i
                     min_index = i
                     if i == len(arr):
-                        running = False
-                        
-                    # restart timer
+                        sort_completed = True
+                    else:
+                        # restart timer
+                        swapping = False
+                        pygame.time.set_timer(NEXTITER, SORTING_SPEED + 200)
+                elif not swap_needed:
+                    current_min_bar.recolor(DARK_GREEN)
+                    target_bar.recolor(GRAY)
+
                     swapping = False
-                    pygame.time.set_timer(NEXTITER, 800)
+                    pygame.time.set_timer(NEXTITER, SORTING_SPEED)
                 else:
                     current_min_bar.update(-1)
-                    first_bar.update(1)
+                    target_bar.update(1)
 
             bars.draw(screen)
                 
