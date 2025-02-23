@@ -17,6 +17,11 @@ YELLOW = (255, 255, 0)
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 500
 
+BAR_WIDTH = 25
+BAR_HEIGHT = 15
+BAR_Y = 400
+
+
 pygame.display.set_caption("Sort Sim")
 
 # Set up the drawing window
@@ -32,12 +37,6 @@ def main():
     swapping = False
     # TODO: if first element is already sorted, no swap needed!
     # no_swap_needed = False
-    has_reached_end_point = False
-    # make test array
-    random_arr = []
-    while len(random_arr) < 8:
-            num = random.randint(1, 18)
-            random_arr.append(num)
     
     button = Button(
         left=(SCREEN_WIDTH - 200) // 2,  # Center horizontally
@@ -49,29 +48,34 @@ def main():
         text_color=BLACK
     )
 
+    bar_x = 100
+
     # custom events
     NEXTITER = pygame.USEREVENT + 1
     pygame.time.set_timer(NEXTITER, 600)
 
-    # set up visual array
-    bars = []
-    bar_x = 100
-    bar_y = 400
+    # make test array
+    arr = []
+    while len(arr) < 8:
+            arr.append(random.randint(1, 18))
+   
     # indices for loops
     i = 0
     j = i
     min_index = i
     # dicts for swap
-    current_smallest = {}
-    current_swapper = {}
+    current_min = {}
+    target_swap = {}
 
-    for num in random_arr:
-        bars.append(Bar(bar_x, bar_y, num, GRAY))
+    bars = pygame.sprite.Group()
+
+    for index in range(len(arr)):
+        total_height = BAR_HEIGHT * arr[index]
+        bar = Bar_Sprite(bar_x, BAR_Y - total_height, BAR_WIDTH, total_height)
+        bars.add(bar)
         bar_x += 50
 
     while running:
-
-        screen.fill(BLACK)
         # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -82,106 +86,97 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if button.is_clicked(pygame.mouse.get_pos()):
-                        # pygame.event.post(pygame.event.Event(STARTSORT))
                         sorting = True
             elif event.type == NEXTITER and sorting and not swapping:
-                n = len(bars)
+                bars_list = bars.sprites()
+                n = len(bars_list)
                 if j == n:
                     pygame.time.wait(600)
                 else:
-                    prev = bars[j - 1]
-                    bars[min_index].color = GREEN
-                    bars[min_index].is_smallest = True
-                    if bars[j].value < bars[min_index].value:
+                    prev_bar = bars_list[j - 1]
+                    prev_val = arr[j - 1]
+                    bars_list[min_index].recolor(GREEN)
+                    bars_list[min_index].is_smallest = True
+                    if arr[j] < arr[min_index]:
                         # changing color and bool of old min
-                        bars[min_index].color = GRAY
-                        bars[min_index].is_smallest = False
+                        bars_list[min_index].recolor(GRAY)
+                        bars_list[min_index].is_smallest = False
                         # updating color and bool to new min
-                        bars[j].color = GREEN
-                        bars[j].is_smallest = True
+                        bars_list[j].recolor(GREEN)
+                        bars_list[j].is_smallest = True
                         # check if there is a yellow bar before the new min
-                        if prev.value >= bars[min_index].value:
-                            prev.color = GRAY
-                        # assigning last so its not confusing
+                        if prev_val >= arr[min_index]:
+                            prev_bar.recolor(GRAY)
+                        # assigning last so it's not confusing
                         min_index = j
                     else:
                         if j >= i + 1:
-                            if not prev.is_smallest:
-                                prev.color = GRAY
-                            bars[j].color = YELLOW
+                            if not prev_bar.is_smallest:
+                                prev_bar.recolor(GRAY)
+                            bars_list[j].recolor(YELLOW)
                 # increment
                 j += 1
                 if j > n:
                     # start swap animation
-                    for i, bar in enumerate(bars):
+                    for index, bar in enumerate(bars_list):
                         if bar.is_smallest:
-                            current_smallest['bar'] = bar.rect.copy()
-                            current_smallest['index'] = i
-                    current_swapper['bar'] = bars[0].rect.copy()
-                    current_swapper['index'] = 0
+                            current_min['x'] = bar.rect.x
+                            current_min['index'] = index
+                    target_swap['x'] = bars_list[0].rect.x
+                    target_swap['index'] = 0
                     pygame.time.set_timer(NEXTITER, 0)
                     swapping = True
 
                 
         # drawing and swapping
+        screen.fill(BLACK) 
         if not sorting:
             button.draw(screen, font)
         else:
             if swapping:
-                speed = 2
-                first_bar = bars[current_swapper['index']]
-                smallest_bar = bars[current_smallest['index']]
-                # target coordinates
-                target_swap_x = current_swapper['bar'].x
-                print(f'this is the first swap x coord: {target_swap_x}')
-                target_smallest_x = current_smallest['bar'].x
-                print(f'this is the smallest x coord: {target_smallest_x}')
-                
-                bars[len(bars) - 1].color = GRAY
-                first_bar.color = YELLOW
-                if not has_reached_end_point:
-                    if smallest_bar.rect.x != target_swap_x:
-                            direction = target_swap_x - smallest_bar.rect.x
-                            if abs(direction) > speed:
-                                smallest_bar.rect.x += speed if direction > 0 else -speed
-                    
-                    if first_bar.rect.x != target_smallest_x:
-                            direction = target_smallest_x - first_bar.rect.x
-                            if abs(direction) > speed:
-                                first_bar.rect.x += speed if direction > 0 else -speed
-                    else:
-                        has_reached_end_point = True
-                        swapping = False
-                        # color smallest bar to dark green and mark as sorted
-                        smallest_bar.color = DARK_GREEN
-                        smallest_bar.is_sorted = True
-                        smallest_bar.is_current_min = False
-                        # color swapped bar back to gray
-                        first_bar.color = GRAY
-                        # actually swap the bars in the array
-                        first_bar, smallest_bar = smallest_bar, first_bar
-                        # increment loops
-                        i += 1
-                        j = i
-                        min_index = i
-                        # restart timer
-                        pygame.time.set_timer(NEXTITER, 800)
-            for bar in bars:
-                pygame.draw.rect(screen, bar.color, bar.rect)
+                current_min_bar = bars_list[current_min['index']]
+                first_bar = bars_list[target_swap['index']]
+                if current_min['index'] != len(bars_list) - 1:
+                    bars_list[len(bars_list) - 1].recolor(GRAY)
+                first_bar.recolor(YELLOW)
+                if (
+                        current_min_bar.rect.x <= target_swap['x'] and
+                        first_bar.rect.x >= current_min['x']
+                    ):
+                    # actually swap the bars in the array
+                    arr[current_min['index']], arr[target_swap['index']] = arr[target_swap['index']], arr[current_min['index']]
+                    bars.empty()
+                    bar_x = target_swap['x']
+                    for index in range(len(arr)):
+                        total_height = BAR_HEIGHT * arr[index]
+                        bar = Bar_Sprite(bar_x, BAR_Y - total_height, BAR_WIDTH, total_height)
+                        if index == target_swap['index']:
+                            bar.recolor(DARK_GREEN)
+                            bar.is_sorted = True
+                        bars.add(bar)
+                        bar_x += 50
+                    # increment loops
+                    i += 1
+
+                    j = i
+                    min_index = i
+                    if i == len(arr):
+                        running = False
+                        
+                    # restart timer
+                    swapping = False
+                    pygame.time.set_timer(NEXTITER, 800)
+                else:
+                    current_min_bar.update(-1)
+                    first_bar.update(1)
+
+            bars.draw(screen)
                 
         pygame.display.flip()
 
         clock.tick(60)
 
     pygame.quit()
-
-# TODO: update this method to work with repetitive code
-def move_toward(current, target, speed):
-    if current < target:
-        return min(current + speed, target)
-    elif current > target:
-        return max(current - speed, target)
-    return current
 
 
 if __name__ == "__main__":

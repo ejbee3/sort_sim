@@ -1,15 +1,23 @@
 import pygame
 
-class Bar:
-    def __init__(self, pos_x, pos_y, arr_value, color):
-        self.height = 15 * arr_value
-        self.width = 25
-        self.value = arr_value
-        self.color = color
+class Bar_Sprite(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height):
+
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.Surface((width, height))
+        self.image.fill((137, 137, 137))
+        self.rect = pygame.Rect(x, y, width, height)
+        self.speed = 6
         self.is_smallest = False
         self.is_sorted = False
-        self.rect = pygame.Rect(pos_x, pos_y - self.height, self.width, self.height)
+    
+    def update(self, dir):
+        self.rect.x += self.speed * dir
 
+    def recolor(self, color):
+        self.image.fill(color)
+    
 
 class Button(pygame.Rect):
     def __init__(self, left, top, width, height, text, color, text_color):
