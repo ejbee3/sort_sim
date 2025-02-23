@@ -10,7 +10,6 @@ class Bar_Sprite(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, width, height)
         self.speed = 6
         self.is_smallest = False
-        self.is_sorted = False
     
     def update(self, dir):
         self.rect.x += self.speed * dir
